@@ -48,7 +48,7 @@ export default class App extends React.Component {
     let oScreenToShow = null;
     switch (this.state.screenName) {
       case "trainme":
-        oScreenToShow = <TrainMeView/>;
+        oScreenToShow = <TrainMeView fBackButtonClick={this.handleHomePageButtonClicked.bind(this, "homepage")}/>;
         break;
       case "recognize":
         oScreenToShow = null;

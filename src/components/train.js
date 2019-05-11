@@ -5,7 +5,10 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableHighlight
+  TouchableHighlight,
+  ImageEditor,
+  TextInput,
+  TouchableOpacity
 } from 'react-native';
 import {Camera, Permissions, ImagePicker} from 'expo';
 
@@ -22,15 +25,15 @@ export default class TrainMe extends React.Component {
 
     this.state = {
       photo: null,
+      name: "",
       hasCameraPermission: null,
-      visible: false,
-      data: sData,
-      showUploadResp: null,
       showUploadButton: false
     };
 
     this._pickImage = this._pickImage.bind(this);
     this.handleUploadPhoto = this.handleUploadPhoto.bind(this);
+    this.handleNameInputChanged = this.handleNameInputChanged.bind(this);
+    this.handleBackButtonClicked = this.handleBackButtonClicked.bind(this);
   }
 
 
@@ -46,10 +49,11 @@ export default class TrainMe extends React.Component {
 
   createFormData(photo) {
     let data = new FormData();
-    alert('in 22222');
+    // alert('in 22222');
 
-    data.append("image", {
-      name: photo.fileName,
+    let _this = this;
+    data.append("file", {
+      name: /*photo.fileName*/_this.state.name,
       type: photo.type + '.jpg',
       uri: Platform.OS === "android" ? photo.uri : photo.uri.replace("file://", ""),
     });
@@ -60,7 +64,7 @@ export default class TrainMe extends React.Component {
   handleUploadPhoto = () => {
     let _this = this;
 
-    fetch("https://quick-panther-42.localtunnel.me/uploadtraining", {
+    fetch("https://hot-octopus-46.localtunnel.me/uploadtraining", {
       method: "POST",
       body: _this.createFormData(_this.state.photo),
       headers: {
@@ -70,60 +74,56 @@ export default class TrainMe extends React.Component {
     })
       .then(response => {
         console.log("ggggg", response);
-        alert('in 1');
-        return response.json();
-      })
-      .then(response => {
-        console.log("upload succes", response);
-        // alert('in 2');
-        this.setState({
-          showUploadResp: response,
-          showUploadButton: false
-        });
+        if (response.status == 200) {
+          alert(response["_bodyText"]);
+          this.setState({
+            name: "",
+            photo: null,
+            showUploadButton: false
+          });
+        } else {
+          return response.json();
+        }
       })
       .catch(error => {
-        // alert('in error');
-
         console.log("upload error", error);
       });
 
-    /*fetch("https://quick-panther-42.localtunnel.me/")
-      .then(response => {
-        console.log("ggggg", response);
-        alert('in 1'+ response);
-        return response.json();
-      })
-      .then(response => {
-        console.log("upload succes", response);
-        alert('in 333333');
-        this.setState({
-          showUploadResp: response,
-          showUploadButton: false
-        });
-      })
-      .catch(error => {
-        // alert('in error');
-
-        console.log("upload error", error);
-      });*/
   };
 
   _pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: false,
+      allowsEditing: true,
       aspect: [4, 3],
-      quality: 1
+      quality: 0.1
     });
     console.log(result);
 
     if (!result.cancelled) {
-      if (!result.fileName) {
+        let resizedUri = await new Promise((resolve, reject) => {
+            ImageEditor.cropImage(result.uri,
+                {
+                    offset: { x: 0, y: 0 },
+                    size: { width: result.width, height: result.height },
+                    displaySize: { width: 50, height: 50 },
+                    resizeMode: 'contain',
+                },
+                (uri) => resolve(uri),
+                () => reject(),
+            );
+        })
+            .catch(error => {
+                console.log("resize error", error);
+            });
+
+        if (!result.fileName) {
         let aTemp = result.uri.split('/');
         result.fileName = aTemp[aTemp.length - 1];
       }
+      console.log('dfshgdf');
       this.setState({
         photo: result,
-        showUploadButton: true
+        showUploadButton: !!this.state.name
       });
     }
 
@@ -131,45 +131,58 @@ export default class TrainMe extends React.Component {
 
   _pickImageC = async () => {
     let result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
+      allowsEditing: true,
       aspect: [4, 3],
-      quality: 1
+      quality: 0.1
     });
     console.log(result);
 
     if (!result.cancelled) {
+
+      let resizedUri = await new Promise((resolve, reject) => {
+        ImageEditor.cropImage(result.uri,
+          {
+            offset: {x: 0, y: 0},
+            size: {width: result.width, height: result.height},
+            displaySize: {width: 50, height: 50},
+            resizeMode: 'contain',
+          },
+          (uri) => resolve(uri),
+          () => reject(),
+        );
+      }).catch(error => {
+          console.log("resize error", error);
+        });
+
       if (!result.fileName) {
         let aTemp = result.uri.split('/');
         result.fileName = aTemp[aTemp.length - 1];
       }
+
       this.setState({
         photo: result,
-        showUploadButton: true
+        showUploadButton: !!this.state.name
       });
     }
 
   };
 
-  GetCards = () => {
-    let oRespData = this.state.showUploadResp;
-
-    let aCaptions = [];
-    if (Object.keys(oRespData).length) {
-      for (let sKey in oRespData) {
-        aCaptions.push(
-          <View style={styles.captionLineWrapper}>
-            <Text style={styles.captionLine}>{oRespData[sKey]}</Text>
-          </View>);
-      }
-    } else {
-      aCaptions.push(<Text>Please try again...</Text>);
+  handleNameInputChanged(name){
+    if(!!name){
+      let bShowUploadButton = !!this.state.photo;
+      this.setState({
+        name: name,
+        showUploadButton: bShowUploadButton
+      });
+    }else {
+      this.setState({
+        name: name
+      });
     }
+  }
 
-    return (
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {aCaptions}
-      </ScrollView>
-    )
+  handleBackButtonClicked(){
+    this.props.fBackButtonClick();
   }
 
   getImageBlockView() {
@@ -216,7 +229,20 @@ export default class TrainMe extends React.Component {
 
         {this.getImageBlockView()}
 
+        <Text style={styles.nameLabelText}>Enter Name of student: </Text>
+        <TextInput
+          style={styles.nameInput}
+          onChangeText={this.handleNameInputChanged}
+          value={this.state.name}
+        />
+
         {oUploadButton}
+
+
+        <TouchableOpacity activeOpacity={.5} style={styles.backButtonImage} onPress={this.handleBackButtonClicked}>
+          <Image source={require('../../assets/images/go-back-64.png')}/>
+        </TouchableOpacity>
+
       </View>
     );
   }

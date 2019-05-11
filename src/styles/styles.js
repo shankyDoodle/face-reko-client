@@ -4,7 +4,8 @@ export default StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 200
+    paddingTop: 200,
+    position: "relative",
   },
   button: {
     padding: 5
@@ -56,6 +57,26 @@ export default StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     fontWeight: "bold"
+  },
+  nameLabelText:{
+    color: 'gray',
+    fontSize: 10,
+  },
+  nameInput: {
+    height: 40,
+    width: 300,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
+  },
+  backButtonImage:{
+    width: 50,
+    height: 50,
+    position: "absolute",
+    bottom: 100,
+    // left: 25
   }
 });
 
