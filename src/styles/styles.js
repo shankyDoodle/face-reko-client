@@ -83,6 +83,20 @@ export default StyleSheet.create({
     position: "absolute",
     bottom: 100,
     // left: 25
+  },
+  item: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 30,
+    margin: 2,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    width: 300
+  },
+  markPresent:{
+    backgroundColor: "#ebffe1"
   }
 });
 

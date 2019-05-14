@@ -26,7 +26,8 @@ export default class Recognize extends React.Component {
       name: new Date().getTime()+"",
       hasCameraPermission: null,
       showUploadButton: false,
-      isLoading: false
+      isLoading: false,
+      faceList: []
     };
 
     this._pickImage = this._pickImage.bind(this);
@@ -59,6 +60,27 @@ export default class Recognize extends React.Component {
     return data;
   };
 
+
+  handleAttendanceResult(oResponse){
+    let aMasterList = [];
+    oResponse.mathedFaces.forEach(sName=>{
+      aMasterList.push({
+        name: sName.split(".")[0],
+        isPresent: true
+      });
+    });
+
+    oResponse.unmatchedFaces.forEach(sName=>{
+      aMasterList.push({
+        name: sName.split(".")[0],
+        isPresent: false
+      });
+    });
+
+    return aMasterList;
+  }
+
+
   handleUploadPhoto = () => {
     let _this = this;
 
@@ -73,13 +95,20 @@ export default class Recognize extends React.Component {
     })
       .then(response => {
         if (response.status == 200) {
-          alert(response["_bodyText"]);
+          let oRespData = JSON.parse(response["_bodyText"]);
+          if(!oRespData.mathedFaces.length && !oRespData.unmatchedFaces.length){
+            alert("Invalid Image (No face detected)!!! Please try again.");
+            return;
+          }
+          let aAllFacesList = _this.handleAttendanceResult(oRespData);
           this.setState({
             name: "",
             photo: null,
-            showUploadButton: false
+            showUploadButton: false,
+            isLoading: false,
+            faceList: aAllFacesList
           });
-          this.setState({isLoading: false});
+
         } else {
           if(this.state.isLoading){
             this.setState({isLoading: false});
@@ -216,9 +245,10 @@ export default class Recognize extends React.Component {
 
     let oLoadingSym = this.state.isLoading ? <AppLoader/> : null;
 
-    return (
+    let oDOM = (
       <View style={styles.container}>
         <Text style={styles.headerText}>Recognize</Text>
+
         <View style={styles.buttonWrapper}>
           <TouchableHighlight style={styles.resetButton} onPress={this._pickImage}>
             <Text style={styles.resetText}>Pick an image from camera roll</Text>
@@ -248,6 +278,32 @@ export default class Recognize extends React.Component {
         {oLoadingSym}
       </View>
     );
+    if(this.state.faceList.length){
+      oDOM = (
+        <View style={styles.container}>
+          <Text style={styles.headerText}>Recognize</Text>
+
+          <ScrollView>
+            {
+              this.state.faceList.map((item, index) => {
+                let sClassName = item.isPresent ? "markPresent": "markAbsent";
+                return <View key={item.id} style={[styles.item, styles[sClassName]]}>
+                  <Text>{item.name}</Text>
+                </View>
+              })
+            }
+          </ScrollView>
+
+          <TouchableOpacity activeOpacity={.5} style={styles.backButtonImage} onPress={this.handleBackButtonClicked}>
+            <Image source={require('../../assets/images/go-back-64.png')}/>
+          </TouchableOpacity>
+
+          {oLoadingSym}
+        </View>
+      )
+    }
+
+    return oDOM;
   }
 }
 
