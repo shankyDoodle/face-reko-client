@@ -8,7 +8,9 @@ import {
 import styles from './src/styles/styles' ;
 
 import TrainMeView from './src/components/train';
+import RecognizeView from './src/components/recognize';
 
+let sTunnelURL = "https://tricky-tiger-77.localtunnel.me";
 export default class App extends React.Component {
 
   constructor(props) {
@@ -48,10 +50,14 @@ export default class App extends React.Component {
     let oScreenToShow = null;
     switch (this.state.screenName) {
       case "trainme":
-        oScreenToShow = <TrainMeView fBackButtonClick={this.handleHomePageButtonClicked.bind(this, "homepage")}/>;
+        oScreenToShow = <TrainMeView
+          tunnelURL={sTunnelURL}
+          fBackButtonClick={this.handleHomePageButtonClicked.bind(this, "homepage")}/>;
         break;
       case "recognize":
-        oScreenToShow = null;
+        oScreenToShow = <RecognizeView
+          tunnelURL={sTunnelURL}
+          fBackButtonClick={this.handleHomePageButtonClicked.bind(this, "homepage")}/>;
         break;
       default:
         oScreenToShow = this.getHomeScreenView();

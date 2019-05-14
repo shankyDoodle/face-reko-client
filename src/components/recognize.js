@@ -10,20 +10,20 @@ import {
   TextInput,
   TouchableOpacity
 } from 'react-native';
-import {Camera, Permissions, ImagePicker} from 'expo';
+import {Permissions, ImagePicker} from 'expo';
 
 import styles from '../styles/styles' ;
+
 import AppLoader from './loader';
 
-
-export default class TrainMe extends React.Component {
+export default class Recognize extends React.Component {
 
   constructor(props) {
     super(props);
 
     this.state = {
       photo: null,
-      name: "",
+      name: new Date().getTime()+"",
       hasCameraPermission: null,
       showUploadButton: false,
       isLoading: false
@@ -48,10 +48,9 @@ export default class TrainMe extends React.Component {
 
   createFormData(photo) {
     let data = new FormData();
-    // alert('in 22222');
 
     let _this = this;
-    data.append("file", {
+    data.append("file2", {
       name: /*photo.fileName*/_this.state.name,
       type: photo.type + '.jpg',
       uri: Platform.OS === "android" ? photo.uri : photo.uri.replace("file://", ""),
@@ -62,8 +61,9 @@ export default class TrainMe extends React.Component {
 
   handleUploadPhoto = () => {
     let _this = this;
+
     this.setState({isLoading: true});
-    fetch(_this.props.tunnelURL + "/uploadtraining", {
+    fetch(_this.props.tunnelURL + "/uploadrecognize", {
       method: "POST",
       body: _this.createFormData(_this.state.photo),
       headers: {
@@ -72,7 +72,6 @@ export default class TrainMe extends React.Component {
       },
     })
       .then(response => {
-        console.log("ggggg", response);
         if (response.status == 200) {
           alert(response["_bodyText"]);
           this.setState({
@@ -82,13 +81,13 @@ export default class TrainMe extends React.Component {
           });
           this.setState({isLoading: false});
         } else {
-          this.setState({isLoading: false});
+          if(this.state.isLoading){
+            this.setState({isLoading: false});
+          }
           return response.json();
         }
-
       })
       .catch(error => {
-        // console.log("upload error", error);
         alert("Image Upload Failed!!! Please try again.");
         if(this.state.isLoading){
           this.setState({isLoading: false});
@@ -103,7 +102,6 @@ export default class TrainMe extends React.Component {
       aspect: [4, 3],
       quality: 0.5
     });
-    console.log(result);
 
     if (!result.cancelled) {
         let resizedUri = await new Promise((resolve, reject) => {
@@ -126,7 +124,6 @@ export default class TrainMe extends React.Component {
         let aTemp = result.uri.split('/');
         result.fileName = aTemp[aTemp.length - 1];
       }
-      console.log('dfshgdf');
       this.setState({
         photo: result,
         showUploadButton: !!this.state.name
@@ -196,9 +193,8 @@ export default class TrainMe extends React.Component {
 
     return (
       <View>
-        {!!photo ? <Image resizeMode={'cover'} source={{uri: photo.uri}} style={styles.myImage}/> :
+        {!!photo ? <Image resizeMode={'cover'} source={{uri: photo.uri}} style={styles.myImagePresent}/> :
           <Image source={require('../../assets/images/icons8-picture-480.png')} style={styles.myImage}/>
-
         }
       </View>);
   }
@@ -213,7 +209,7 @@ export default class TrainMe extends React.Component {
 
     let oUploadButton = this.state.showUploadButton ? <View style={styles.buttonWrapper}>
         <TouchableHighlight style={styles.resetButton} onPress={this.handleUploadPhoto}>
-          <Text style={styles.resetText}>Upload</Text>
+          <Text style={styles.resetText}>Recognize</Text>
         </TouchableHighlight>
       </View>
       : null;
@@ -222,7 +218,7 @@ export default class TrainMe extends React.Component {
 
     return (
       <View style={styles.container}>
-        <Text style={styles.headerText}>TrainMe</Text>
+        <Text style={styles.headerText}>Recognize</Text>
         <View style={styles.buttonWrapper}>
           <TouchableHighlight style={styles.resetButton} onPress={this._pickImage}>
             <Text style={styles.resetText}>Pick an image from camera roll</Text>
@@ -236,7 +232,7 @@ export default class TrainMe extends React.Component {
 
         {this.getImageBlockView()}
 
-        <Text style={styles.nameLabelText}>Enter Name of student: </Text>
+        <Text style={styles.nameLabelText}>Identifier: </Text>
         <TextInput
           style={styles.nameInput}
           onChangeText={this.handleNameInputChanged}
@@ -245,17 +241,13 @@ export default class TrainMe extends React.Component {
 
         {oUploadButton}
 
-
         <TouchableOpacity activeOpacity={.5} style={styles.backButtonImage} onPress={this.handleBackButtonClicked}>
           <Image source={require('../../assets/images/go-back-64.png')}/>
         </TouchableOpacity>
 
         {oLoadingSym}
-
       </View>
     );
   }
-
-
 }
 

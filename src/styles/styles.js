@@ -23,8 +23,14 @@ export default StyleSheet.create({
     marginBottom: 50
   },
   myImage:{
-    width: 200,
-    height: 200,
+    width: 300,
+    height: 300,
+    borderRadius: 10,
+    marginTop: 20
+  },
+  myImagePresent:{
+    width: 250,
+    height: 250,
     borderRadius: 10,
     marginTop: 20
   },
